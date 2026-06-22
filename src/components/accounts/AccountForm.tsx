@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
+import { useMsal } from '@azure/msal-react';
 import { useAppStore } from '../../store/useAppStore';
 import { TEAM_MEMBERS } from '../../config/members';
 import { useAddAccount, useUpdateAccount } from '../../hooks/useAccounts';
@@ -20,7 +21,8 @@ interface Props {
 }
 
 export default function AccountForm({ account, onClose }: Props) {
-  const currentEmail = useAppStore((s) => s.currentEmail) ?? '';
+  const { accounts: msalAccounts } = useMsal();
+  const currentEmail = msalAccounts[0]?.username ?? '';
   const selectedMember = useAppStore((s) => s.selectedMember) ?? '';
   const addAccount = useAddAccount();
   const updateAccount = useUpdateAccount();
