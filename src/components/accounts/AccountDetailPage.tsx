@@ -7,7 +7,8 @@ import Timeline from '../timeline/Timeline';
 import AccountForm from './AccountForm';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ExportButton from '../common/ExportButton';
-import { STATUS_LABELS, STATUS_COLORS } from '../../types';
+import PipelineBar from '../pipeline/PipelineBar';
+import { PURSUIT_COLORS, PURSUIT_LABELS, STAGE_LABELS } from '../../types';
 
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,7 @@ export default function AccountDetailPage() {
   if (!account) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500 text-sm">Account not found.</p>
+        <p className="text-gray-500 text-sm">Pursuit not found.</p>
         <button onClick={() => navigate('/')} className="mt-2 text-blue-600 text-sm hover:underline">
           Go back
         </button>
@@ -51,23 +52,27 @@ export default function AccountDetailPage() {
       </button>
 
       {/* Header card */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-        <div className="flex items-start justify-between gap-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h1 className="text-lg font-semibold text-gray-900">{account.name}</h1>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[account.status]}`}>
-                {STATUS_LABELS[account.status]}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PURSUIT_COLORS[account.pursuitType]}`}>
+                {PURSUIT_LABELS[account.pursuitType]}
               </span>
             </div>
-            <p className="text-sm text-gray-500">{account.company}</p>
+            <p className="text-sm text-gray-500">{account.dealName}</p>
             {account.description && (
               <p className="text-sm text-gray-400 mt-2">{account.description}</p>
             )}
-            <p className="text-xs text-gray-400 mt-3">Owner: <span className="font-medium text-gray-600">{account.ownerName}</span></p>
+            <p className="text-xs text-gray-400 mt-3">
+              Owner: <span className="font-medium text-gray-600">{account.ownerName}</span>
+              <span className="mx-2 text-gray-300">·</span>
+              Stage: <span className="font-medium text-gray-600">{STAGE_LABELS[account.stage]}</span>
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <ExportButton accounts={[account]} entries={entries} mode="single" />
             <button
               onClick={() => setEditing(true)}
@@ -83,6 +88,11 @@ export default function AccountDetailPage() {
             </button>
           </div>
         </div>
+
+        {/* Pipeline bar */}
+        <div className="pt-4 border-t border-gray-100">
+          <PipelineBar stage={account.stage} />
+        </div>
       </div>
 
       {/* Timeline */}
@@ -94,7 +104,7 @@ export default function AccountDetailPage() {
 
       {confirming && (
         <ConfirmDialog
-          message={`Delete "${account.name}"? All timeline entries will also be deleted. This cannot be undone.`}
+          message={`Delete "${account.name} — ${account.dealName}"? All timeline entries will also be deleted. This cannot be undone.`}
           onConfirm={handleDelete}
           onCancel={() => setConfirming(false)}
         />

@@ -1,56 +1,42 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp,
-} from 'firebase/firestore';
-import { db } from '../lib/firebaseClient';
+import { useDataStore } from '../store/useDataStore';
 import type { TimelineEntry } from '../types';
 
 type CreateInput = Omit<TimelineEntry, 'id' | 'createdAt'>;
 type UpdateInput = { id: string; accountId: string } & Partial<Pick<TimelineEntry, 'entryDate' | 'title' | 'notes'>>;
 
 export function useTimeline(accountId: string) {
-  return useQuery({
-    queryKey: ['timeline', accountId],
-    queryFn: async () => {
-      const q = query(
-        collection(db!, 'timeline_entries'),
-        where('accountId', '==', accountId),
-        orderBy('entryDate'),
-      );
-      const snap = await getDocs(q);
-      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as TimelineEntry));
-    },
-    enabled: !!accountId && !!db,
-  });
+  const entries = useDataStore((s) =>
+    s.timelineEntries
+      .filter((e) => e.accountId === accountId)
+      .slice()
+      .sort((a, b) => a.entryDate.localeCompare(b.entryDate))
+  );
+  return { data: entries, isLoading: false };
 }
 
 export function useAddEntry() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateInput) =>
-      addDoc(collection(db!, 'timeline_entries'), { ...data, createdAt: serverTimestamp() }),
-    onSuccess: (_data, vars: CreateInput) =>
-      qc.invalidateQueries({ queryKey: ['timeline', vars.accountId] }),
-  });
+  const addEntry = useDataStore((s) => s.addEntry);
+  return {
+    mutateAsync: async (data: CreateInput) => { addEntry(data); },
+    mutate: (data: CreateInput) => { addEntry(data); },
+    isPending: false,
+  };
 }
 
 export function useUpdateEntry() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, accountId: _aid, ...patch }: UpdateInput) =>
-      updateDoc(doc(db!, 'timeline_entries', id), patch),
-    onSuccess: (_data, vars: UpdateInput) =>
-      qc.invalidateQueries({ queryKey: ['timeline', vars.accountId] }),
-  });
+  const updateEntry = useDataStore((s) => s.updateEntry);
+  return {
+    mutateAsync: async ({ id, accountId: _aid, ...patch }: UpdateInput) => { updateEntry(id, patch); },
+    mutate: ({ id, accountId: _aid, ...patch }: UpdateInput) => { updateEntry(id, patch); },
+    isPending: false,
+  };
 }
 
 export function useDeleteEntry() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id }: { id: string; accountId: string }) =>
-      deleteDoc(doc(db!, 'timeline_entries', id)),
-    onSuccess: (_data, vars: { id: string; accountId: string }) =>
-      qc.invalidateQueries({ queryKey: ['timeline', vars.accountId] }),
-  });
+  const deleteEntry = useDataStore((s) => s.deleteEntry);
+  return {
+    mutateAsync: async ({ id }: { id: string; accountId: string }) => { deleteEntry(id); },
+    mutate: ({ id }: { id: string; accountId: string }) => { deleteEntry(id); },
+    isPending: false,
+  };
 }

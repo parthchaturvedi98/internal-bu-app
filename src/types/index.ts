@@ -1,36 +1,56 @@
+export type PipelineStage =
+  | 'qualify'
+  | 'commercial'
+  | 'provisioned'
+  | 'discover'
+  | 'workshop'
+  | 'pilot_pov'
+  | 'close';
+
+export type PursuitType = 'transactional' | 'transformational';
+
 export interface Account {
   id: string;
-  name: string;
-  company: string;
-  status: 'active' | 'on_hold' | 'closed' | 'won' | 'lost';
+  name: string;           // Company / account name  e.g. "Office Depot"
+  dealName: string;       // Deal description        e.g. "Renewal ADM deal"
+  pursuitType: PursuitType;
+  stage: PipelineStage;
   ownerName: string;
   ownerEmail: string;
-  description?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TimelineEntry {
   id: string;
   accountId: string;
-  entryDate: string;
+  entryDate: string;      // YYYY-MM-DD
   title: string;
-  notes?: string | null;
-  createdAt?: string;
+  notes?: string;
+  createdAt: string;
 }
 
-export const STATUS_LABELS: Record<Account['status'], string> = {
-  active:   'Active',
-  on_hold:  'On Hold',
-  closed:   'Closed',
-  won:      'Won',
-  lost:     'Lost',
+export const PIPELINE_STAGES: PipelineStage[] = [
+  'qualify', 'commercial', 'provisioned', 'discover', 'workshop', 'pilot_pov', 'close',
+];
+
+export const STAGE_LABELS: Record<PipelineStage, string> = {
+  qualify:     'Qualify',
+  commercial:  'Commercial',
+  provisioned: 'Provisioned',
+  discover:    'Discover',
+  workshop:    'Workshop',
+  pilot_pov:   'Pilot/PoV',
+  close:       'Close',
 };
 
-export const STATUS_COLORS: Record<Account['status'], string> = {
-  active:   'bg-green-100 text-green-800',
-  on_hold:  'bg-yellow-100 text-yellow-800',
-  closed:   'bg-gray-100 text-gray-700',
-  won:      'bg-blue-100 text-blue-800',
-  lost:     'bg-red-100 text-red-800',
+export const PURSUIT_LABELS: Record<PursuitType, string> = {
+  transactional:    'Transactional',
+  transformational: 'Transformational',
+};
+
+export const PURSUIT_COLORS: Record<PursuitType, string> = {
+  transactional:    'bg-indigo-100 text-indigo-800',
+  transformational: 'bg-blue-100 text-blue-800',
 };
