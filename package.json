@@ -10,11 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@azure/msal-browser": "^5.14.0",
-    "@azure/msal-react": "^5.4.5",
-    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@tanstack/react-query": "^5.101.0",
     "date-fns": "^4.4.0",
+    "firebase": "^12.15.0",
     "lucide-react": "^1.21.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

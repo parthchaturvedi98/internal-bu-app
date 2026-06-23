@@ -1,12 +1,10 @@
 import { LogOut } from 'lucide-react';
-import { useMsal } from '@azure/msal-react';
+import { useAppStore } from '../../store/useAppStore';
 import MemberPicker from '../common/MemberPicker';
 
 export default function TopBar() {
-  const { instance, accounts } = useMsal();
-  const email = accounts[0]?.username ?? '';
-
-  const handleSignOut = () => instance.logoutPopup();
+  const currentEmail = useAppStore((s) => s.currentEmail);
+  const clearSession = useAppStore((s) => s.clearSession);
 
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
@@ -16,14 +14,14 @@ export default function TopBar() {
         <MemberPicker />
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-500">{email}</span>
+        <span className="text-xs text-gray-500">{currentEmail}</span>
         <button
-          onClick={handleSignOut}
+          onClick={clearSession}
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
-          title="Sign out"
+          title="Switch user"
         >
           <LogOut size={14} />
-          Sign out
+          Switch user
         </button>
       </div>
     </header>

@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useIsAuthenticated } from '@azure/msal-react';
+import { useAppStore } from './store/useAppStore';
 import LoginPage from './components/auth/LoginPage';
 import AppShell from './components/layout/AppShell';
 import AccountsListPage from './components/accounts/AccountsListPage';
 import AccountDetailPage from './components/accounts/AccountDetailPage';
 
 export default function App() {
-  const isAuthenticated = useIsAuthenticated();
+  const currentEmail = useAppStore((s) => s.currentEmail);
 
-  if (!isAuthenticated) return <LoginPage />;
+  if (!currentEmail) return <LoginPage />;
 
   return (
     <AppShell>

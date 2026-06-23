@@ -1,22 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getGraphClient } from '../lib/graphClient';
-import { accountsUrl } from '../lib/sharepointConfig';
+import {
+  collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+  query, where, serverTimestamp,
+} from 'firebase/firestore';
+import { db } from '../lib/firebaseClient';
 import type { Account } from '../types';
-
-function mapItem(item: Record<string, unknown>): Account {
-  const f = item.fields as Record<string, string>;
-  return {
-    id: item.id as string,
-    name: f.Title ?? '',
-    company: f.Company ?? '',
-    status: (f.Status as Account['status']) ?? 'active',
-    ownerName: f.OwnerName ?? '',
-    ownerEmail: f.OwnerEmail ?? '',
-    description: f.Description ?? '',
-    createdAt: item.createdDateTime as string,
-    updatedAt: item.lastModifiedDateTime as string,
-  };
-}
 
 type CreateInput = Omit<Account, 'id' | 'createdAt' | 'updatedAt'>;
 type UpdateInput = { id: string } & Partial<Omit<Account, 'id' | 'createdAt' | 'updatedAt'>>;
@@ -25,15 +13,12 @@ export function useAccounts(ownerName?: string | null) {
   return useQuery({
     queryKey: ['accounts', ownerName ?? 'all'],
     queryFn: async () => {
-      const gc = getGraphClient();
-      let url = `${accountsUrl()}?$expand=fields`;
-      if (ownerName) {
-        const safe = ownerName.replace(/'/g, "''");
-        url += `&$filter=fields/OwnerName eq '${safe}'`;
-      }
-      const res = await gc.api(url).get();
-      return ((res.value ?? []) as Record<string, unknown>[]).map(mapItem);
+      const col = collection(db!, 'accounts');
+      const q = ownerName ? query(col, where('ownerName', '==', ownerName)) : col;
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Account));
     },
+    enabled: !!db,
   });
 }
 
@@ -41,30 +26,19 @@ export function useAccount(id: string) {
   return useQuery({
     queryKey: ['account', id],
     queryFn: async () => {
-      const gc = getGraphClient();
-      const res = await gc.api(`${accountsUrl()}/${id}?$expand=fields`).get();
-      return mapItem(res);
+      const snap = await getDoc(doc(db!, 'accounts', id));
+      if (!snap.exists()) return null;
+      return { id: snap.id, ...snap.data() } as Account;
     },
-    enabled: !!id,
+    enabled: !!id && !!db,
   });
 }
 
 export function useAddAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: CreateInput) => {
-      const gc = getGraphClient();
-      return gc.api(accountsUrl()).post({
-        fields: {
-          Title: data.name,
-          Company: data.company,
-          Status: data.status,
-          OwnerName: data.ownerName,
-          OwnerEmail: data.ownerEmail,
-          Description: data.description ?? '',
-        },
-      });
-    },
+    mutationFn: (data: CreateInput) =>
+      addDoc(collection(db!, 'accounts'), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['accounts'] }),
   });
 }
@@ -72,17 +46,8 @@ export function useAddAccount() {
 export function useUpdateAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...patch }: UpdateInput) => {
-      const gc = getGraphClient();
-      const fields: Record<string, unknown> = {};
-      if (patch.name !== undefined) fields.Title = patch.name;
-      if (patch.company !== undefined) fields.Company = patch.company;
-      if (patch.status !== undefined) fields.Status = patch.status;
-      if (patch.ownerName !== undefined) fields.OwnerName = patch.ownerName;
-      if (patch.ownerEmail !== undefined) fields.OwnerEmail = patch.ownerEmail;
-      if (patch.description !== undefined) fields.Description = patch.description;
-      return gc.api(`${accountsUrl()}/${id}/fields`).patch(fields);
-    },
+    mutationFn: ({ id, ...patch }: UpdateInput) =>
+      updateDoc(doc(db!, 'accounts', id), { ...patch, updatedAt: serverTimestamp() }),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['accounts'] });
       qc.invalidateQueries({ queryKey: ['account', vars.id] });
@@ -93,10 +58,7 @@ export function useUpdateAccount() {
 export function useDeleteAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const gc = getGraphClient();
-      return gc.api(`${accountsUrl()}/${id}`).delete();
-    },
+    mutationFn: (id: string) => deleteDoc(doc(db!, 'accounts', id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['accounts'] }),
   });
 }
