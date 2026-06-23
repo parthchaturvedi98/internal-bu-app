@@ -14,7 +14,6 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<AccountsListPage />} />
-        <Route path="/all" element={<AccountsListPage showAll />} />
         <Route path="/accounts/:id" element={<AccountDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
