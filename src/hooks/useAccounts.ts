@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useDataStore } from '../store/useDataStore';
 import type { Account } from '../types';
 
@@ -6,13 +7,17 @@ type UpdateInput = { id: string } & Partial<Omit<Account, 'id' | 'createdAt' | '
 
 export function useAccounts(ownerName?: string | null) {
   const accounts = useDataStore((s) => s.accounts);
-  const data = ownerName ? accounts.filter((a) => a.ownerName === ownerName) : accounts;
+  const data = useMemo(
+    () => (ownerName ? accounts.filter((a) => a.ownerName === ownerName) : accounts),
+    [accounts, ownerName]
+  );
   return { data, isLoading: false };
 }
 
 export function useAccount(id: string) {
   const accounts = useDataStore((s) => s.accounts);
-  return { data: accounts.find((a) => a.id === id) ?? null, isLoading: false };
+  const data = useMemo(() => accounts.find((a) => a.id === id) ?? null, [accounts, id]);
+  return { data, isLoading: false };
 }
 
 export function useAddAccount() {

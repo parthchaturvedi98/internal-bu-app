@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useDataStore } from '../store/useDataStore';
 import type { TimelineEntry } from '../types';
 
@@ -5,13 +6,16 @@ type CreateInput = Omit<TimelineEntry, 'id' | 'createdAt'>;
 type UpdateInput = { id: string; accountId: string } & Partial<Pick<TimelineEntry, 'entryDate' | 'title' | 'notes'>>;
 
 export function useTimeline(accountId: string) {
-  const entries = useDataStore((s) =>
-    s.timelineEntries
-      .filter((e) => e.accountId === accountId)
-      .slice()
-      .sort((a, b) => a.entryDate.localeCompare(b.entryDate))
+  const timelineEntries = useDataStore((s) => s.timelineEntries);
+  const data = useMemo(
+    () =>
+      timelineEntries
+        .filter((e) => e.accountId === accountId)
+        .slice()
+        .sort((a, b) => a.entryDate.localeCompare(b.entryDate)),
+    [timelineEntries, accountId]
   );
-  return { data: entries, isLoading: false };
+  return { data, isLoading: false };
 }
 
 export function useAddEntry() {
