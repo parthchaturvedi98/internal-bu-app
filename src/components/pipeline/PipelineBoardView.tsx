@@ -10,16 +10,14 @@ function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 }
 
-const STAGE_CONFIG: Record<PipelineStage, {
-  headerBg: string; colBg: string; border: string; avatarBg: string;
-}> = {
-  qualify:     { headerBg: 'bg-slate-800', colBg: 'bg-slate-50',      border: 'hover:border-slate-400 hover:shadow-sm', avatarBg: 'bg-slate-600' },
-  commercial:  { headerBg: 'bg-slate-700', colBg: 'bg-slate-50',      border: 'hover:border-slate-400 hover:shadow-sm', avatarBg: 'bg-slate-500' },
-  provisioned: { headerBg: 'bg-slate-600', colBg: 'bg-slate-50',      border: 'hover:border-slate-400 hover:shadow-sm', avatarBg: 'bg-slate-500' },
-  discover:    { headerBg: 'bg-blue-800',  colBg: 'bg-blue-50',       border: 'hover:border-blue-400 hover:shadow-sm',  avatarBg: 'bg-blue-700' },
-  workshop:    { headerBg: 'bg-blue-700',  colBg: 'bg-blue-50',       border: 'hover:border-blue-400 hover:shadow-sm',  avatarBg: 'bg-blue-600' },
-  pilot_pov:   { headerBg: 'bg-blue-600',  colBg: 'bg-blue-50',       border: 'hover:border-blue-400 hover:shadow-sm',  avatarBg: 'bg-blue-500' },
-  close:       { headerBg: 'bg-emerald-700', colBg: 'bg-emerald-50',  border: 'hover:border-emerald-400 hover:shadow-sm', avatarBg: 'bg-emerald-600' },
+const CFG: Record<PipelineStage, { hd: string; bg: string; av: string; hov: string }> = {
+  qualify:     { hd: 'bg-slate-800', bg: 'bg-slate-50',    av: 'bg-slate-600', hov: 'hover:border-slate-400' },
+  commercial:  { hd: 'bg-slate-700', bg: 'bg-slate-50',    av: 'bg-slate-500', hov: 'hover:border-slate-400' },
+  provisioned: { hd: 'bg-slate-600', bg: 'bg-slate-50',    av: 'bg-slate-500', hov: 'hover:border-slate-400' },
+  discover:    { hd: 'bg-blue-800',  bg: 'bg-blue-50',     av: 'bg-blue-700',  hov: 'hover:border-blue-400'  },
+  workshop:    { hd: 'bg-blue-700',  bg: 'bg-blue-50',     av: 'bg-blue-600',  hov: 'hover:border-blue-400'  },
+  pilot_pov:   { hd: 'bg-blue-600',  bg: 'bg-blue-50',     av: 'bg-blue-500',  hov: 'hover:border-blue-400'  },
+  close:       { hd: 'bg-emerald-700', bg: 'bg-emerald-50', av: 'bg-emerald-600', hov: 'hover:border-emerald-400' },
 };
 
 export default function PipelineBoardView({ accounts }: Props) {
@@ -32,69 +30,67 @@ export default function PipelineBoardView({ accounts }: Props) {
   accounts.forEach((a) => byStage[a.stage]?.push(a));
 
   return (
-    <div className="overflow-x-auto pb-2 -mx-6 px-6">
-      <div style={{ minWidth: '1120px' }}>
-        {/* Group band */}
-        <div className="flex gap-2 mb-2">
-          <div style={{ flex: 3 }} className="text-center text-[11px] font-semibold tracking-widest uppercase text-slate-500 bg-slate-100 rounded-md py-1.5">
-            Transactional — Resell / API tokens
+    <div className="overflow-x-auto">
+      {/* Fixed-width inner so it scrolls horizontally on small screens */}
+      <div style={{ minWidth: '980px' }}>
+        {/* Group labels */}
+        <div className="flex gap-1.5 mb-1.5">
+          <div style={{ flex: 3 }} className="text-center text-[10px] font-bold tracking-widest uppercase text-slate-500 bg-slate-100 rounded py-1">
+            Transactional
           </div>
-          <div style={{ flex: 3 }} className="text-center text-[11px] font-semibold tracking-widest uppercase text-blue-500 bg-blue-50 rounded-md py-1.5">
-            Transformational — Services led
+          <div style={{ flex: 3 }} className="text-center text-[10px] font-bold tracking-widest uppercase text-blue-500 bg-blue-50 rounded py-1">
+            Transformational
           </div>
-          <div style={{ flex: 1 }} className="text-center text-[11px] font-semibold tracking-widest uppercase text-emerald-600 bg-emerald-50 rounded-md py-1.5">
+          <div style={{ flex: 1 }} className="text-center text-[10px] font-bold tracking-widest uppercase text-emerald-600 bg-emerald-50 rounded py-1">
             Won
           </div>
         </div>
 
         {/* Columns */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {PIPELINE_STAGES.map((stage) => {
             const cards = byStage[stage];
-            const cfg = STAGE_CONFIG[stage];
+            const c = CFG[stage];
             return (
-              <div key={stage} className="flex-1 flex flex-col rounded-xl overflow-hidden border border-gray-200 shadow-sm" style={{ minWidth: '140px' }}>
+              <div
+                key={stage}
+                className="flex flex-col rounded-lg overflow-hidden border border-gray-200"
+                style={{ flex: 1, minWidth: '120px' }}
+              >
                 {/* Header */}
-                <div className={`${cfg.headerBg} px-3 py-2.5 flex items-center justify-between gap-2`}>
-                  <span className="text-white text-xs font-semibold">{STAGE_LABELS[stage]}</span>
-                  <span className="bg-white/20 text-white text-[11px] font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                <div className={`${c.hd} px-2 py-2 flex items-center justify-between`}>
+                  <span className="text-white text-[11px] font-semibold leading-tight">{STAGE_LABELS[stage]}</span>
+                  <span className="bg-white/25 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
                     {cards.length}
                   </span>
                 </div>
 
                 {/* Cards */}
-                <div className={`${cfg.colBg} flex-1 p-2 space-y-2 min-h-[200px]`}>
+                <div className={`${c.bg} flex-1 p-1.5 space-y-1.5 min-h-[160px]`}>
                   {cards.length === 0 && (
-                    <div className="flex items-center justify-center py-8">
-                      <span className="text-gray-300 text-xs">Empty</span>
-                    </div>
+                    <p className="text-center text-gray-300 text-[10px] pt-6">—</p>
                   )}
-                  {cards.map((account) => (
+                  {cards.map((a) => (
                     <div
-                      key={account.id}
-                      onClick={() => navigate(`/accounts/${account.id}`)}
-                      className={`bg-white rounded-lg border border-gray-200 p-3 cursor-pointer transition-all ${cfg.border} group`}
+                      key={a.id}
+                      onClick={() => navigate(`/accounts/${a.id}`)}
+                      className={`bg-white rounded-lg border border-gray-200 p-2 cursor-pointer transition-all ${c.hov} hover:shadow-sm group`}
                     >
-                      {/* Company name — full, wraps if needed */}
-                      <p className="font-semibold text-gray-900 text-[13px] leading-snug mb-1 group-hover:text-blue-700 transition-colors break-words">
-                        {account.name}
+                      <p className="font-semibold text-gray-900 text-[12px] leading-snug mb-0.5 group-hover:text-blue-700 break-words">
+                        {a.name}
                       </p>
-                      {/* Deal name — single line with ellipsis */}
-                      <p className="text-[11px] text-gray-500 mb-2.5 truncate" title={account.dealName}>
-                        {account.dealName}
+                      <p className="text-[10px] text-gray-500 mb-2 truncate" title={a.dealName}>
+                        {a.dealName}
                       </p>
-                      {/* Footer row */}
                       <div className="flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className={`w-5 h-5 rounded-full ${cfg.avatarBg} text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0`}>
-                            {initials(account.ownerName)}
+                        <div className="flex items-center gap-1 min-w-0">
+                          <div className={`w-4 h-4 rounded-full ${c.av} text-white text-[8px] font-bold flex items-center justify-center flex-shrink-0`}>
+                            {initials(a.ownerName)}
                           </div>
-                          <span className="text-[10px] text-gray-400 truncate" title={account.ownerName}>
-                            {account.ownerName.split(' ')[0]}
-                          </span>
+                          <span className="text-[9px] text-gray-400 truncate">{a.ownerName.split(' ')[0]}</span>
                         </div>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 ${PURSUIT_COLORS[account.pursuitType]}`}>
-                          {account.pursuitType === 'transactional' ? 'Tx' : 'Tr'}
+                        <span className={`text-[9px] px-1 py-0.5 rounded-full font-semibold flex-shrink-0 ${PURSUIT_COLORS[a.pursuitType]}`}>
+                          {a.pursuitType === 'transactional' ? 'Tx' : 'Tr'}
                         </span>
                       </div>
                     </div>
